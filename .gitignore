@@ -1,0 +1,18 @@
+# Dependency (Sampah Berat)
+node_modules/
+*/node_modules/
+
+# Environment Variables (RAHASIA NEGARA - JANGAN DIHAPUS DARI SINI)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Build Output (Sampah Build)
+dist/
+build/
+
+# System Files (Sampah Mac/Windows)
+.DS_Store
+Thumbs.db
