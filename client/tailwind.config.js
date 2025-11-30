@@ -2,7 +2,27 @@
 export default {
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        // Font Judul Gahar
+        display: ['"Archivo Black"', "sans-serif"],
+        // Font Teknis/Struk
+        mono: ['"Space Mono"', "monospace"],
+        // Font Biasa (Body)
+        sans: ["Inter", "sans-serif"],
+      },
+      colors: {
+        // Warna Aksen "Racun" (Pilih satu: Orange atau Lime)
+        "brutal-orange": "#FF4D00",
+        "brutal-lime": "#CCFF00",
+        paper: "#F5F5F0", // Warna kertas agak kusam dikit
+      },
+      boxShadow: {
+        // Shadow Tajam (Solid) khas Brutalist
+        brutal: "4px 4px 0px 0px rgba(0,0,0,1)",
+        "brutal-sm": "2px 2px 0px 0px rgba(0,0,0,1)",
+      },
+    },
   },
   plugins: [],
 };
