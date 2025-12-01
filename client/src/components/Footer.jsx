@@ -11,7 +11,7 @@ const Footer = () => {
             Alamat
           </h3>
           <p className="leading-relaxed">
-            Jl. Kenangan Mantan No. 666<br />
+            Jl. Jalan Ke Pasar No. 666<br />
             Jakarta Selatan, 12345<br />
             Indonesia
           </p>
