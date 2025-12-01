@@ -1,26 +1,23 @@
-const User = require('../models/User')
-const generateToken = require('../utils/generateToken')
-
+// @desc    Login user (MODE OFFLINE / BACKDOOR)
 const authUser = async (req, res) => {
     try {
-        const {email, password} = req.body
-        const user = await User.findOne({email})
+        const { email, password } = req.body;
 
-        if (user && (await user.matchPassword(password))) {
+        if (email === 'admin@katalogin.com' && password === 'admin123') {
             res.json({
-                _id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        token: generateToken(user._id),
-            })
+                _id: "id_admin_palsu_123",
+                name: "Admin Ganteng (Offline)",
+                email: email,
+                role: "admin",
+                token: "token_palsu_yang_penting_bisa_masuk",
+            });
         } else {
-            res.status(400).json({message: 'Email dan atau Password salah'})
+            res.status(401).json({ message: 'Email atau Password Salah Bro!' });
         }
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: "Server Error saat Login" });
+        res.status(500).json({ message: 'Server Error' });
     }
-}
+};
 
 module.exports = { authUser };

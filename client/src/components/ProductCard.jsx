@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 
 const ProductCard = ({ product }) => {
   return (
-    <div className="group relative border border-gray-200 bg-white transition-all hover:shadow-lg">
+    <div className="group relative bg-white h-full flex flex-col transition-colors hover:bg-gray-50">
       <div className="aspect-[3/4] w-full overflow-hidden bg-gray-100">
         <img
           src={product.images[0]}

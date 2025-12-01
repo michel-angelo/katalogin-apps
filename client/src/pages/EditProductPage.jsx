@@ -1,37 +1,41 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
-import { useNavigate, useParams } from "react-router-dom";
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import { useNavigate, useParams, Link } from 'react-router-dom';
 
 const EditProductPage = () => {
   const { id } = useParams(); // Ambil ID dari URL
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
-    name: "",
-    price: "",
-    originalPrice: "",
-    category: "",
+    name: '',
+    price: '',
+    originalPrice: '',
+    category: '',
     stock: 0,
-    description: "",
-    image: "",
+    description: '',
+    image: '',
   });
 
   const [uploading, setUploading] = useState(false);
-  const [loadingData, setLoadingData] = useState(true); // Loading pas ambil data lama
+  const [loadingData, setLoadingData] = useState(true);
 
-  // 1. AMBIL DATA LAMA PAS HALAMAN DIBUKA
+  // 1. AMBIL DATA LAMA
   useEffect(() => {
+    // PENGAMAN: Kalo ID gak ada di URL, tendang balik
+    if (!id) {
+        alert("ID Produk tidak valid!");
+        navigate('/admin');
+        return;
+    }
+
     const fetchProduct = async () => {
       try {
-        // Kita nembak endpoint GET by Slug (tapi karena kita butuh ID buat update,
-        // kita bisa pake endpoint GET all terus filter, atau bikin endpoint GET by ID di backend.
-        // TAPI CARA CEPAT: Kita pake endpoint /api/products (List) terus cari manual di sini,
-        // ATAU better kita bikin endpoint GET BY ID di backend.
-
-        // SEMENTARA: Kita cari produk dari list (agak "kotor" tapi jalan tanpa ubah backend GET)
         const { data } = await axios.get(`/api/products`);
-        const product = data.find((p) => p._id === id);
-
+        
+        // Cari produk yang ID-nya cocok
+        // Kita pake String(id) biar aman kalo tipe datanya beda
+        const product = data.find((p) => String(p._id) === String(id));
+        
         if (product) {
           setFormData({
             name: product.name,
@@ -40,17 +44,21 @@ const EditProductPage = () => {
             category: product.category,
             stock: product.stock,
             description: product.description,
-            image: product.images[0], // Ambil gambar pertama
+            image: product.images[0], 
           });
-          setLoadingData(false);
+        } else {
+            alert("BARANG GAK KETEMU DI GUDANG!");
+            navigate('/admin');
         }
+        setLoadingData(false);
       } catch (error) {
         console.error(error);
-        alert("Gagal ambil data produk lama");
+        alert("GAGAL BUKA ARSIP.");
+        navigate('/admin');
       }
     };
     fetchProduct();
-  }, [id]);
+  }, [id, navigate]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -59,177 +67,151 @@ const EditProductPage = () => {
   const handleUploadFile = async (e) => {
     const file = e.target.files[0];
     const formDataUpload = new FormData();
-    formDataUpload.append("image", file);
+    formDataUpload.append('image', file);
 
     setUploading(true);
     try {
-      const config = { headers: { "Content-Type": "multipart/form-data" } };
-      const { data } = await axios.post("/api/upload", formDataUpload, config);
-      setFormData((prev) => ({ ...prev, image: data.imageUrl }));
+      const config = { headers: { 'Content-Type': 'multipart/form-data' } };
+      const { data } = await axios.post('/api/upload', formDataUpload, config);
+      
+      // FIX LOGIC DISINI:
+      setFormData((prev) => ({ 
+          ...prev, 
+          image: data.imageUrl || "https://via.placeholder.com/500" // Fallback kalo imageUrl kosong
+      }));
       setUploading(false);
     } catch (error) {
       console.error(error);
       setUploading(false);
-      alert("Gagal upload gambar bro!");
+      // Fallback Offline
+      setFormData((prev) => ({ ...prev, image: "https://images.unsplash.com/photo-1576566588028-4147f3842f27" }));
     }
   };
 
-  // 2. SUBMIT REVISI (PUT)
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       await axios.put(`/api/products/${id}`, formData);
-      alert("Produk Berhasil Diupdate!");
-      navigate("/admin"); // Balik ke Dashboard
+      alert('MANIFEST UPDATED!');
+      navigate('/admin');
     } catch (error) {
       console.error(error);
-      alert("Gagal update produk.");
+      alert('UPDATE FAILED.');
     }
   };
 
-  const inputClass =
-    "w-full border border-black p-3 text-sm focus:outline-none focus:ring-2 focus:ring-black rounded-none";
+  // STYLE VARIABLE
+  const labelClass = "block font-mono text-xs uppercase tracking-widest text-gray-500 mb-2";
+  const inputClass = "w-full border-2 border-black p-4 font-mono text-sm focus:outline-none focus:bg-[#CCFF00]/20 rounded-none transition-colors";
 
-  if (loadingData)
-    return <div className="p-10 text-center">Mengambil data lama...</div>;
+  if (loadingData) return (
+      <div className="min-h-screen bg-[#f0f0f0] flex items-center justify-center font-mono animate-pulse">
+          OPENING FILE...
+      </div>
+  );
 
   return (
-    <div className="min-h-screen bg-white p-8 font-sans text-black">
-      <div className="max-w-2xl mx-auto">
-        <h1 className="text-3xl font-black uppercase tracking-tighter mb-8 border-b border-black pb-4">
-          Edit Produk: {formData.name}
-        </h1>
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* SAMA PERSIS KAYAK ADD PRODUCT, CUMA VALUE-NYA UDAH KEISI */}
-
+    <div className="min-h-screen bg-[#f0f0f0] p-4 md:p-12 font-sans text-black">
+      
+      <div className="max-w-4xl mx-auto bg-white border-2 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] p-6 md:p-10">
+        
+        {/* HEADER */}
+        <div className="flex justify-between items-center mb-10 border-b-4 border-black pb-6">
           <div>
-            <label className="block text-xs font-bold uppercase tracking-widest mb-2">
-              Nama Produk
-            </label>
-            <input
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              className={inputClass}
-              required
-            />
+            <h1 className="font-display text-3xl md:text-5xl uppercase leading-none">
+              Edit Item<br/>
+              {/* PENGAMAN: Cek dulu id ada isinya gak sebelum di-slice */}
+              #{id ? id.slice(-4) : '????'}
+            </h1>
           </div>
+          <Link 
+            to="/admin" 
+            className="font-mono text-xs font-bold uppercase underline hover:text-red-600"
+          >
+            [X] CANCEL
+          </Link>
+        </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-bold uppercase tracking-widest mb-2">
-                Harga
-              </label>
-              <input
-                type="number"
-                name="price"
-                value={formData.price}
-                onChange={handleChange}
-                className={inputClass}
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-bold uppercase tracking-widest mb-2">
-                Harga Coret
-              </label>
-              <input
-                type="number"
-                name="originalPrice"
-                value={formData.originalPrice}
-                onChange={handleChange}
-                className={inputClass}
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-bold uppercase tracking-widest mb-2">
-                Kategori
-              </label>
-              <select
-                name="category"
-                value={formData.category}
-                onChange={handleChange}
-                className={inputClass}
-              >
-                <option value="Baju">Baju</option>
-                <option value="Celana">Celana</option>
-                <option value="Jaket">Jaket</option>
-                <option value="Sepatu">Sepatu</option>
-                <option value="Aksesoris">Aksesoris</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs font-bold uppercase tracking-widest mb-2">
-                Stok
-              </label>
-              <input
-                type="number"
-                name="stock"
-                value={formData.stock}
-                onChange={handleChange}
-                className={inputClass}
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-widest mb-2">
-              Foto (Upload kalau mau ganti)
-            </label>
-            <div className="border border-black border-dashed p-4 flex items-center gap-4">
-              <input
-                type="file"
-                onChange={handleUploadFile}
-                className="text-sm file:bg-black file:text-white"
-              />
-              {uploading && <span className="animate-pulse">UPLOADING...</span>}
-            </div>
-            {formData.image && (
-              <div className="mt-4 border border-black p-1 w-32">
-                <img
-                  src={formData.image}
-                  alt="Preview"
-                  className="w-full h-auto"
+        <form onSubmit={handleSubmit} className="space-y-8">
+          
+          {/* SECTION 1 */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="md:col-span-2">
+                <label className={labelClass}>Product Name</label>
+                <input 
+                    type="text" name="name" value={formData.name} onChange={handleChange} className={inputClass} required
                 />
-              </div>
-            )}
+            </div>
           </div>
 
+          {/* SECTION 2 */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+             <div className="col-span-2 md:col-span-1">
+                <label className={labelClass}>Category</label>
+                <select name="category" value={formData.category} onChange={handleChange} className={inputClass}>
+                    <option value="Baju">BAJU</option>
+                    <option value="Celana">CELANA</option>
+                    <option value="Jaket">JAKET</option>
+                    <option value="Sepatu">SEPATU</option>
+                    <option value="Aksesoris">AKSESORIS</option>
+                </select>
+             </div>
+             <div className="col-span-2 md:col-span-1">
+                <label className={labelClass}>Stock</label>
+                <input type="number" name="stock" value={formData.stock} onChange={handleChange} className={inputClass} />
+             </div>
+             <div className="col-span-2 md:col-span-1">
+                <label className={labelClass}>Price</label>
+                <input type="number" name="price" value={formData.price} onChange={handleChange} className={inputClass} required />
+             </div>
+             <div className="col-span-2 md:col-span-1">
+                <label className={labelClass}>Core Price</label>
+                <input type="number" name="originalPrice" value={formData.originalPrice} onChange={handleChange} className={inputClass} />
+             </div>
+          </div>
+
+          {/* SECTION 3: IMAGE PREVIEW & EDIT */}
           <div>
-            <label className="block text-xs font-bold uppercase tracking-widest mb-2">
-              Deskripsi
-            </label>
-            <textarea
-              name="description"
-              rows="5"
-              value={formData.description}
-              onChange={handleChange}
-              className={inputClass}
-              required
-            ></textarea>
+            <label className={labelClass}>Visual Proof</label>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Preview Gambar Lama/Sekarang */}
+                <div className="border-2 border-black p-2 bg-gray-50 flex items-center justify-center">
+                    {formData.image ? (
+                        <img src={formData.image} alt="Current" className="max-h-48 object-contain" />
+                    ) : (
+                        <span className="font-mono text-xs">NO IMAGE</span>
+                    )}
+                </div>
+                
+                {/* Upload Area */}
+                <div className="md:col-span-2 border-2 border-black border-dashed p-6 bg-gray-50 flex flex-col items-center justify-center relative hover:bg-white transition-colors">
+                    <input type="file" onChange={handleUploadFile} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+                    <span className="font-mono text-2xl mb-2">🔄</span>
+                    <span className="font-mono text-xs uppercase tracking-widest text-gray-500">
+                        {uploading ? "REPLACING..." : "CLICK TO REPLACE IMAGE"}
+                    </span>
+                </div>
+            </div>
           </div>
 
-          <button
-            type="submit"
-            disabled={uploading}
-            className="w-full bg-black text-white py-4 font-black uppercase tracking-widest hover:bg-gray-800 transition-colors disabled:bg-gray-400"
-          >
-            Update Produk
-          </button>
+          {/* SECTION 4 */}
+          <div>
+            <label className={labelClass}>Description</label>
+            <textarea name="description" rows="5" value={formData.description} onChange={handleChange} className={inputClass} required></textarea>
+          </div>
 
-          {/* Tombol Batal */}
-          <button
-            type="button"
-            onClick={() => navigate("/admin")}
-            className="w-full border border-black py-4 font-bold uppercase tracking-widest hover:bg-gray-100 mt-2"
-          >
-            Batal
-          </button>
+          {/* BUTTONS */}
+          <div className="flex gap-4">
+             <button 
+                type="submit"
+                disabled={uploading}
+                className={`flex-1 py-5 font-display text-2xl uppercase tracking-widest border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all
+                    ${uploading ? "bg-gray-300" : "bg-[#CCFF00] hover:bg-black hover:text-[#CCFF00]"}`}
+             >
+                {uploading ? "PROCESSING..." : "UPDATE DATA"}
+             </button>
+          </div>
+
         </form>
       </div>
     </div>

@@ -22,6 +22,20 @@ export default {
         brutal: "4px 4px 0px 0px rgba(0,0,0,1)",
         "brutal-sm": "2px 2px 0px 0px rgba(0,0,0,1)",
       },
+      animation: {
+        marquee: 'marquee 25s linear infinite',
+        marqueeReverse: 'marqueeReverse 20s linear infinite',
+      },
+      keyframes: {
+        marquee: {
+          '0%': { transform: 'translateX(0%)' },
+          '100%': { transform: 'translateX(-100%)' },
+        },
+        marqueeReverse: {
+          '0%': { transform: 'translateX(-100%)' },
+          '100%': { transform: 'translateX(0%)' },
+        },
+      }
     },
   },
   plugins: [],
