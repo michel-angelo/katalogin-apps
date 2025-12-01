@@ -4,10 +4,11 @@ import './index.css'
 import App from './App.jsx'
 import axios from 'axios'
 
+// Set Base URL Railway
 axios.defaults.baseURL = 'https://katalogin-apps-production.up.railway.app';
 
-ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
+createRoot(document.getElementById('root')).render(
+  <StrictMode>
     <App />
-  </React.StrictMode>,
+  </StrictMode>,
 )
